@@ -121,7 +121,7 @@ def main():
     elif args.dataset == "fashionmnist":
         dataset_func = get_fashion_mnist_datasets
     else:
-        raise ValueError(f"{args.data} not found")
+        raise ValueError(f"{args.dataset} not found")
 
     train_ds, val_ds, label_mapping = dataset_func(root=args.data_dir, download=True)
     num_classes = len(label_mapping)
