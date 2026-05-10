@@ -8,11 +8,12 @@ def run_neuralsat(args, onnx_path, vnnlib_path, output_path, timeout):
     result_path = f'{output_path}.txt'
     log_path = f'{output_path}.log'
     if os.path.exists(result_path):
-        status = open(result_path).read().strip().split(',')[0]
+        status, runtime = open(result_path).read().strip().split(',')
         if status not in ['sat', 'unsat', 'timeout']:
             status = 'error'
+            runtime = -1
         if not (status == 'error' or status == "timeout"):
-            return status
+            return status, runtime
 
     os.chdir(args.verifier_dir)
 
@@ -34,15 +35,16 @@ def run_neuralsat(args, onnx_path, vnnlib_path, output_path, timeout):
     toc = time.time()
     
     if os.path.exists(result_path):
-        status = open(result_path).read().strip().split(',')[0]
+        status, runtime = open(result_path).read().strip().split(',')
         if status not in ['sat', 'unsat', 'timeout']:
             status = 'error'
+            runtime = -1
     else:
         status = 'error'
         with open(result_path, 'w') as f:
             print(f'{status},{toc - tic}', file=f)
     os.chdir(args.home_dir)
-    return status
+    return status, runtime
 
 def get_path(*folder_list):
     res = "."
@@ -116,7 +118,7 @@ if __name__ == '__main__':
             onnx_name = os.path.splitext(os.path.basename(onnx_path))[0]
             vnnlib_name = os.path.splitext(os.path.basename(vnnlib_path))[0]            
             output_path = os.path.abspath(f'{output_dir}/net_{onnx_name}_spec_{vnnlib_name}')
-            status = run_neuralsat(
+            status, runtime = run_neuralsat(
                 args=args,
                 onnx_path=onnx_path,
                 vnnlib_path=vnnlib_path,
@@ -124,5 +126,5 @@ if __name__ == '__main__':
                 timeout=args.timeout
             )
 
-            result_csv.write(f"{benchmark_name}\t{onnx_path}\t{vnnlib_path}\t{status}\n")
+            result_csv.write(f"{benchmark_name}\t{onnx_path}\t{vnnlib_path}\t{status}\t{runtime}\n")
         result_csv.close()
